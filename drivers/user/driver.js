@@ -85,6 +85,8 @@ class UserDriver extends OAuth2Driver {
 
   onWebhookEvent({ body }) {
     const device = this.getDevice({ id: body.user_id });
+    const homeyEventName = `${body.user_id}:${body.event_data.project_id}`;
+    this.homey.api.realtime(homeyEventName, body);
     this.eventTaskDeviceTriggerCard.trigger(
       device,
       { content: body.event_data.content },
