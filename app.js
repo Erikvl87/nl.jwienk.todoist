@@ -50,7 +50,7 @@ class App extends OAuth2App {
     const secret = Homey.env.WEBHOOK_SECRET;
     const ids = [...this.ids];
 
-    const myWebhook = await this.homey.cloud.createWebhook(id, secret, { ids });
+    const myWebhook = await this.homey.cloud.createWebhook(id, secret, { $keys: ids });
 
     myWebhook.on('message', (args) => {
       const driver = this.homey.drivers.getDriver('user');
