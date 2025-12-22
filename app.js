@@ -32,11 +32,49 @@ class App extends OAuth2App {
       authorizationUrl: 'https://todoist.com/oauth/authorize',
       redirectUrl: 'https://callback.athom.com/oauth2/callback',
       scopes: ['data:read_write'],
-      allowMultiSession: true
+      allowMultiSession: true,
     });
 
     this.ids = new Set();
     this.webhook = null;
+
+    const widget = this.homey.dashboards.getWidget('project');
+    widget.registerSettingAutocompleteListener('project', async (query) => {
+      try {
+        const driver = this.homey.drivers.getDriver('user');
+        const devices = driver.getDevices();
+
+        if (devices.length === 0) return [];
+
+        const results = await Promise.all(
+          devices.map(async (device) => {
+            const projects = await device.oAuth2Client.getProjects();
+            return projects.map((project) => ({
+              id: project.id,
+              userId: device.getData().id,
+              name: project.name,
+              description: device.getName(),
+            }));
+          })
+        ).then((lists) => lists.reduce((all, list) => all.concat(list), []));
+
+        const filteredResults = query
+          ? results.filter((result) => {
+              const queryParts = query.toLowerCase().split(' ');
+              return queryParts.every(
+                (part) =>
+                  result.name.toLowerCase().includes(part) ||
+                  result.description.toLowerCase().includes(part)
+              );
+            })
+          : results;
+
+        return filteredResults;
+      } catch (error) {
+        this.log('Error fetching projects for autocomplete:', error);
+        throw new Error('Failed to fetch projects');
+      }
+    });
   }
 
   async registerWebhookData({ data }) {
@@ -52,9 +90,9 @@ class App extends OAuth2App {
 
     const myWebhook = await this.homey.cloud.createWebhook(id, secret, { $keys: ids });
 
-    myWebhook.on('message', (args) => {
+    myWebhook.on('message', async (args) => {
       const driver = this.homey.drivers.getDriver('user');
-      driver.onWebhookEvent({ body: args.body });
+      await driver.onWebhookEvent({ body: args.body });
     });
   }
 }

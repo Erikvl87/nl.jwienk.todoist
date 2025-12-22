@@ -1,0 +1,43 @@
+{
+  "name": {
+    "en": "Project"
+  },
+  "height": 400,
+  "settings": [
+    {
+			"id": "project",
+			"type": "autocomplete",
+			"title": {
+				"en": "Project"
+			}
+		},
+    {
+      "id": "allowCompletingTasks",
+      "type": "checkbox",
+      "title": {
+        "en": "Allow completing tasks from widget",
+        "nl": "Taken voltooien vanuit widget toestaan"
+      },
+      "value": true
+    },
+    {
+      "id": "autoAdjustHeight",
+      "type": "checkbox",
+      "title": {
+        "en": "Auto adjust height",
+        "nl": "Automatisch hoogte aanpassen"
+      },
+      "value": false
+    }
+  ],
+  "api": {
+    "getProject": {
+      "method": "GET",
+      "path": "/users/:userId/projects/:projectId"
+    },
+    "completeTask": {
+      "method": "POST",
+      "path": "/users/:userId/tasks/:taskId/complete"
+    }
+  }
+}
