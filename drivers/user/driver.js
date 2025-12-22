@@ -83,12 +83,24 @@ class UserDriver extends OAuth2Driver {
     ];
   }
 
-  onWebhookEvent({ body }) {
-    const device = this.getDevice({ id: body.user_id });
-    const homeyEventName = `${body.user_id}:${body.event_data.project_id}`;
-    this.homey.api.realtime(homeyEventName, body);
+  async onWebhookEvent({ body }) {
+    console.log('Webhook event received:', body);
+    const userId = body.user_id;
+    const device = this.getDevice({ id: userId });
 
-    if (body.event_name.startsWith('item:')) {
+    const [category] = body.event_name.split(':');
+    const projectId = ({
+      item: () => body.event_data.project_id,
+      project: () => body.event_data.id,
+      section: () => body.event_data.project_id,
+    }[category]?.()) ?? null;
+
+    if(projectId) {
+      const topic = `${userId}:${projectId}`;
+      await this.homey.api.realtime(topic, body);
+    }
+    
+    if (category === 'item') {
       this.eventTaskDeviceTriggerCard.trigger(
         device,
         { content: body.event_data.content },

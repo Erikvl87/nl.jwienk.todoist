@@ -1,0 +1,33 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="homey-widget">
+  <div class="top-bar">
+    <img src="logo.png" class="logo">
+  </div>
+  <main>
+    <div class="content">
+      <h1 class="project-title"></h1>
+      <div class="project"></div>
+    </div>
+    <div id="error" hidden>
+    <div class="error-header">
+      <div class="error-icon">×</div>
+    </div>
+    <div class="error-body">
+      <h1 class="error-title">ERROR</h1>
+      <p class="error-message"></p>
+      <p class="error-technical" hidden></p>
+    </div>
+    <div class="error-refresh">
+      <div class="error-refresh-bar"></div>
+    </div>
+  </div>
+  </main>
+
+  <script type="module" defer src="script.mjs"></script>
+</body>
+</html>
