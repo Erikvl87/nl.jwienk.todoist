@@ -37,12 +37,17 @@ class UserDriver extends OAuth2Driver {
       }
 
       let filter = `search: ${args.filter}`;
-      if(args.project?.id) {
-        const project = await args.device.oAuth2Client.getProject({ project_id: args.project.id });
+      if (args.project?.id) {
+        const projectData = { project_id: args.project.id };
+        const project = await args.device.oAuth2Client.getProject(projectData).catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, projectData, (updated) =>
+            args.device.oAuth2Client.getProject(updated)
+          )
+        );
         filter += ` & #${project.name}`;
       }
 
-      const tasks = await args.device.oAuth2Client.getTasks({
+      const tasks = await args.device.oAuth2Client.getTasksByFilter({
         filter,
       });
 
@@ -117,12 +122,17 @@ class UserDriver extends OAuth2Driver {
 
     conditionTaskExists.registerRunListener(async (args, state) => {
       let filter = `search: ${args.filter}`;
-      if(args.project?.id) {
-        const project = await args.device.oAuth2Client.getProject({ project_id: args.project.id });
+      if (args.project?.id) {
+        const projectData = { project_id: args.project.id };
+        const project = await args.device.oAuth2Client.getProject(projectData).catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, projectData, (updated) =>
+            args.device.oAuth2Client.getProject(updated)
+          )
+        );
         filter += ` & #${project.name}`;
       }
 
-      const tasks = await args.device.oAuth2Client.getTasks({
+      const tasks = await args.device.oAuth2Client.getTasksByFilter({
         filter
       });
 
@@ -143,12 +153,20 @@ class UserDriver extends OAuth2Driver {
     const actionProjectTask = this.homey.flow.getActionCard('action_project_task');
 
     actionProjectTask.registerRunListener(async (args, state) => {
-      await args.device.oAuth2Client.createTask({
+      const taskData = {
         content: args.content,
         project_id: args.project.id,
         priority: args.priority,
         assignee_id: args.assignee?.id,
-      });
+      };
+
+      await args.device.oAuth2Client
+        .createTask(taskData)
+        .catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, taskData, (updated) =>
+            args.device.oAuth2Client.createTask(updated)
+          )
+        );
 
       return true;
     });
@@ -170,13 +188,21 @@ class UserDriver extends OAuth2Driver {
     );
 
     actionProjectDueStringTask.registerRunListener(async (args, state) => {
-      await args.device.oAuth2Client.createTask({
+      const taskData = {
         content: args.content,
         project_id: args.project.id,
         due_string: args.due_string,
         priority: args.priority,
         assignee_id: args.assignee?.id,
-      });
+      };
+
+      await args.device.oAuth2Client
+        .createTask(taskData)
+        .catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, taskData, (updated) =>
+            args.device.oAuth2Client.createTask(updated)
+          )
+        );
 
       return true;
     });
@@ -198,13 +224,21 @@ class UserDriver extends OAuth2Driver {
     actionProjectDueDateTask.registerRunListener(async (args, state) => {
       const due_date = args.due_date.split('-').reverse().join('-');
 
-      await args.device.oAuth2Client.createTask({
+      const taskData = {
         content: args.content,
         project_id: args.project.id,
         due_date: due_date,
         priority: args.priority,
         assignee_id: args.assignee?.id,
-      });
+      };
+
+      await args.device.oAuth2Client
+        .createTask(taskData)
+        .catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, taskData, (updated) =>
+            args.device.oAuth2Client.createTask(updated)
+          )
+        );
 
       return true;
     });
@@ -251,13 +285,21 @@ class UserDriver extends OAuth2Driver {
       const offset = systemDate.getTime() - timeZoneDate.getTime();
       const actualDate = new Date(date.getTime() + offset);
 
-      await args.device.oAuth2Client.createTask({
+      const taskData = {
         content: args.content,
         project_id: args.project.id,
         due_datetime: actualDate.toISOString(),
         priority: args.priority,
         assignee_id: args.assignee?.id,
-      });
+      };
+
+      await args.device.oAuth2Client
+        .createTask(taskData)
+        .catch((err) =>
+          this.handleDeprecatedProjectId(err, args.device, taskData, (updated) =>
+            args.device.oAuth2Client.createTask(updated)
+          )
+        );
 
       return true;
     });
@@ -277,9 +319,15 @@ class UserDriver extends OAuth2Driver {
     const actionFetchProjectTasks = this.homey.flow.getActionCard('action_fetch_project_tasks');
 
     actionFetchProjectTasks.registerRunListener(async (args, state) => {
-      const tasks = await args.device.oAuth2Client.getTasks({
+      const tasksData = {
         project_id: args.project.id,
-      });
+      };
+
+      const tasks = await args.device.oAuth2Client.getTasks(tasksData).catch((err) =>
+        this.handleDeprecatedProjectId(err, args.device, tasksData, (updated) =>
+          args.device.oAuth2Client.getTasks(updated)
+        )
+      );
 
       const taskStrings = [];
 
@@ -343,8 +391,11 @@ class UserDriver extends OAuth2Driver {
       return [];
     }
 
-    const collaborators = await args.device.oAuth2Client.getCollaborators(
-      { project_id: args.project.id }
+    const collaboratorsData = { project_id: args.project.id };
+    const collaborators = await args.device.oAuth2Client.getCollaborators(collaboratorsData).catch((err) =>
+      this.handleDeprecatedProjectId(err, args.device, collaboratorsData, (updated) =>
+        args.device.oAuth2Client.getCollaborators(updated)
+      )
     );
 
     const mapped = collaborators.map((collaborator) => {
@@ -356,6 +407,36 @@ class UserDriver extends OAuth2Driver {
 
     return mapped.filter((project) => {
       return project.name.toLowerCase().includes(query.toLowerCase());
+    });
+  }
+
+  /**
+   * Handle deprecated project ID errors by resolving a new ID and delegating retries to the provided callback.
+   * In our case, this only applies to project identifiers as we didn't use any other deprecated IDs.
+   * https://developer.todoist.com/api/v1/?shell#tag/Ids/operation/id_mappings_api_v1_id_mappings__obj_name___obj_ids__get
+   * @param {*} err the error thrown from the API call
+   * @param {*} device the device making the API call
+   * @param {*} payload the original payload sent to the API
+   * @param {Function} retryCallback callback that receives an updated payload when a new ID is found
+   * @returns {Promise<*>} the result of the retryCallback when successful
+   */
+  async handleDeprecatedProjectId(err, device, payload, retryCallback) {
+    if (err.message !== 'The ID provided was deprecated and cannot be used with this version of the API')
+      throw err;
+
+    const mappings = await device.oAuth2Client.getIdMappings({
+      object_name: 'projects',
+      ids: [payload.project_id],
+    });
+
+    this.log('Translated deprecated project ID', payload.project_id, 'to new ID', mappings);
+    const newProjectId = mappings[0]?.new_id;
+
+    if (newProjectId == null) throw err;
+
+    return retryCallback({
+      ...payload,
+      project_id: newProjectId,
     });
   }
 }
