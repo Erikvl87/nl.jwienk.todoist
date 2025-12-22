@@ -87,11 +87,14 @@ class UserDriver extends OAuth2Driver {
     const device = this.getDevice({ id: body.user_id });
     const homeyEventName = `${body.user_id}:${body.event_data.project_id}`;
     this.homey.api.realtime(homeyEventName, body);
-    this.eventTaskDeviceTriggerCard.trigger(
-      device,
-      { content: body.event_data.content },
-      { event_name: body.event_name }
-    );
+
+    if (body.event_name.startsWith('item:')) {
+      this.eventTaskDeviceTriggerCard.trigger(
+        device,
+        { content: body.event_data.content },
+        { event_name: body.event_name }
+      );
+    }
   }
 
   registerEventTaskDeviceTrigger() {
