@@ -1,0 +1,7 @@
+{
+  "_comment": "Watches all app files except specified ignores, runs 'homey app run' to restart the app on changes.",
+  "watch": ["."],
+  "ignore": ["app.json", "build", "widgets/project/public"],
+  "exec": "homey app run",
+  "signal": "SIGINT"
+}
