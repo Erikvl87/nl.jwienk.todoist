@@ -1,0 +1,7 @@
+{
+  "_comment": "Watches widget TypeScript files, runs tsc to refresh .homeybuild .mjs output, allowing the Homey app runner to pick up changes without a restart.",
+  "watch": ["widgets/project/public"],
+  "ext": "mts",
+  "ignore": [],
+  "exec": "npx tsc --outDir .homeybuild"
+}

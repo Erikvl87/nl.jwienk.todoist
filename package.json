@@ -3,20 +3,19 @@
   "version": "1.3.0",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon --watch . --exec \"homey app run\""
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "app.json",
-      "build"
-    ]
+    "start": "npx npm-run-all --parallel watch:app watch:widgets",
+    "watch:app": "nodemon --config nodemon.app.json -V",
+    "watch:widgets": "nodemon --config nodemon.widgets.json -V",
+    "build": "tsc"
   },
   "dependencies": {
     "homey-oauth2app": "^3.5.0"
   },
   "devDependencies": {
-    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.1",
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
     "nodemon": "^2.0.19",
-    "prettier": "^2.7.1"
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "typescript": "^5.9.3"
   }
 }

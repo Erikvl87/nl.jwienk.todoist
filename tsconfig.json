@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "Preserve",
+    "lib": ["DOM", "ESNext"],
+    "outDir": ".homeybuild",
+    "rootDir": ".",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "noEmit": false,
+    "allowJs": true
+  },
+  "include": [
+    "widgets/**/*.ts",
+    "widgets/**/*.mts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
