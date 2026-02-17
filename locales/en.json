@@ -1,5 +1,7 @@
 {
   "emptyTasks": "No tasks.",
   "project": "Project",
-  "invalidFilter": "Filter is not valid."
+  "invalidFilter": "Filter is not valid.",
+  "tokenInvalid": "Connection expired. Please repair the device.",
+  "tokenInvalidTimeline": "Your Todoist connection has expired for \"__name__\". Please repair this device to reconnect."
 }

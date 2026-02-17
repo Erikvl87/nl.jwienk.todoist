@@ -11,6 +11,18 @@ class UserDevice extends OAuth2Device {
     this.log('onOAuth2Init');
 
     const data = this.getData();
+    
+    const isValid = await this.oAuth2Client.isTokenValid();
+    if (!isValid) {
+      this.log('OAuth token is invalid');
+      await this.homey.notifications.createNotification({
+        excerpt: this.homey.__('tokenInvalidTimeline', { name: this.getName() })
+      });
+      await this.setUnavailable(this.homey.__('tokenInvalid'));
+      return;
+    }
+    this.log('OAuth token is valid');
+    await this.setAvailable();
 
     await this.homey.app.registerWebhookData({ data });
   }

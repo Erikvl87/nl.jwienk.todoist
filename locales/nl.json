@@ -1,5 +1,7 @@
 {
   "emptyTasks": "Geen taken.",
   "project": "Project",
-  "invalidFilter": "Filter is niet geldig."
+  "invalidFilter": "Filter is niet geldig.",
+  "tokenInvalid": "Verbinding verlopen. Repareer het apparaat.",
+  "tokenInvalidTimeline": "De verbinding met Todoist is verlopen voor \"__name__\". Repareer dit apparaat om opnieuw verbinding te maken."
 }
